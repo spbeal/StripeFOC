@@ -1,0 +1,90 @@
+#payment-form {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+#submit {
+    background-color: #a7ceba;
+    color: #004e64;
+    padding: 10px 15px;
+    border: none;
+    cursor: pointer;
+    margin-top: 20px;
+    width: 100%;
+}
+
+.spinner {
+    display: none;
+}
+
+.hidden {
+    display: none;
+}
+
+#payment-message {
+    margin-top: 20px;
+    font-size: 16px;
+    color: #ff0000;
+}
+
+/* FOCUSED BUTTON */
+#payment-element {
+    border: 0px solid #32325d;
+}
+
+#payment-element:focus {
+    border-color: #a7ceba;
+}
+
+/* Custom Google Pay button style */
+.gpay-button {
+    background-color: #a7ceba !important;
+}
+
+.section {
+    /* border: 1px solid #ccc;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    background: #f9f9f9; */
+    flex: 1;
+    padding: 10;
+    margin: 5;
+    border: 1px solid '#ccc';
+    border-radius: 10;
+    border-width: 1;
+    border-color: '#ccc';
+}
+
+.button-container {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.amount-button {
+    padding: 10px 15px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.amount-button:hover {
+    background: #0056b3;
+}
+
+#custom-amount-input {
+    margin-top: 10px;
+}
+
+.column {
+    flex: 1;
+    padding: 10;
+    margin: 5;
+    border: 1px solid '#ccc';
+    border-radius: 10;
+    border-width: 1;
+    border-color: '#ccc';
+  }

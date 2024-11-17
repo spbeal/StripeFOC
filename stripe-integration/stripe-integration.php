@@ -29,11 +29,6 @@ function stripe_payment_form_shortcode() {
         <div id="payment-element">
             <!--Stripe.js injects the Payment Element-->
         </div>
-        <button id="submit">
-            <div class="spinner hidden" id="spinner"></div>
-            <span id="button-text">Pay Now</span>
-        </button>
-        <div id="payment-message" class="hidden"></div>
     </form>
     <?php
     return ob_get_clean();
@@ -43,13 +38,36 @@ add_shortcode('stripe_payment_form', 'stripe_payment_form_shortcode');
 require_once plugin_dir_path(__FILE__) . 'stripe-php/init.php';
 add_action('wp_ajax_create_payment_intent', 'create_payment_intent');
 add_action('wp_ajax_nopriv_create_payment_intent', 'create_payment_intent');
+//add_action('wp_ajax_get_secret', 'get_secret');
+
 
 function create_payment_intent() {
-    \Stripe\Stripe::setApiKey(STRIPE_SECRET_KEY); // Your secret key
+    //\Stripe\Stripe::setApiKey(STRIPE_SECRET_KEY); // Your secret key
+
+    // Parse the JSON body from the POST request
+    $data = json_decode(file_get_contents('php://input'), true);  // Decode the JSON payload
+
+    // Debugging: Log the received data to verify if the 'amount' is sent correctly
+    error_log(print_r($data, true));  // Logs the data for debugging purposes
+
+    // Check if 'amount' is valid
+    if (!isset($data['amount']) || !is_numeric($data['amount']) || $data['amount'] <= 0) {
+        echo json_encode(['success' => false, 'data' => ['message' => 'Invalid or missing amount.']]);
+        wp_die(); // End the request
+    }
+
+    // Process amount (ensure it's in cents)
+    $amount = floatval($data['amount']) * 100;  // Convert to cents
+    $cover_fees = boolval($data['cover_fees']);
+    if ($cover_fees) {
+        $amount += $amount * 0.03;  // Add 3% fee
+    }
 
     try {
+        \Stripe\Stripe::setApiKey(STRIPE_SECRET_KEY); // Your secret key
+
         $intent = \Stripe\PaymentIntent::create([
-            'amount' => 1000, // amount in cents
+            'amount' => $amount,
             'currency' => 'usd',
             'payment_method_types' => ['card'],
         ]);

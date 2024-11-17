@@ -1,6 +1,10 @@
 #payment-form {
-    max-width: 400px;
+    max-width: 800px;
     margin: 0 auto;
+    padding: 20px;
+    /* background-color: #f9f9f9; */
+    border-radius: 10px;
+    /* box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); */
 }
 
 #submit {
@@ -11,6 +15,23 @@
     cursor: pointer;
     margin-top: 20px;
     width: 100%;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+.message {
+    padding: 10px 15px;
+    /* background: #a7ceba; */
+    color: #004e64;
+
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 120px; 
+}
+
+#submit:hover {
+    background-color: #88b8a3; /* Darker shade on hover */
 }
 
 .spinner {
@@ -28,15 +49,148 @@
 }
 
 /* FOCUSED BUTTON */
-#payment-element {
-    border: 0px solid #32325d;
-}
+/* #payment-element {
+    border: 2px solid #32325d;
+    border-radius: 5px;
+} */
 
 #payment-element:focus {
     border-color: #a7ceba;
 }
+#message-section {
+    border-color: #a7ceba;
+}
 
-/* Custom Google Pay button style */
-.gpay-button {
-    background-color: #a7ceba !important;
+#main-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    margin-top: 20px;
+    margin-bottom: -20px;
+    /* background-color: #f9f9f9; */
+    border-radius: 10px;
+    /* box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); */
+}
+
+.section {
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    background: #ffffff; /* White background for each section */
+    border: 1px solid #ccc; /* Light border around the section */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05); 
+}
+
+.section:hover {
+    border-color: #a7ceba; /* Light border change on hover */
+}
+
+.button-container {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px; /* Add some spacing from the previous section */
+    flex-wrap: wrap;
+    justify-content: center; /* Centers the buttons horizontally */
+}
+
+.amount-button {
+    padding: 10px 15px;
+    background: #a7ceba;
+    color: #004e64;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 120px; 
+}
+
+.amount-button:hover {
+    background: #a7ceba;
+}
+
+#custom-amount-input {
+    margin-top: 10px;
+}
+
+.button-row {
+    display: flex;
+    justify-content: center; /* Centers the buttons within each row */
+    gap: 15px; /* Adds space between the buttons in each row */
+    width: 100%;
+}
+.text-container {
+    max-width: 400px;
+    overflow-wrap: break-word; /* Ensures compatibility */
+    display: inline; /* Ensures text stays inline */
+    margin: 0 auto; /* Centers the text container */
+    white-space: normal; /* Allows wrapping only at word boundaries */
+    word-wrap: break-word; /* Breaks long words if necessary */
+    overflow-wrap: break-word; /* Ensures compatibility */
+    color: #004e64;
+}
+
+/* Container for the custom input */
+.custom-amount-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px; /* Space between label and input */
+    margin-top: 20px; /* Adds some spacing from other elements */
+}
+
+/* Styling for the label */
+.custom-amount-label {
+    font-size: 16px;
+    color: #004e64; /* Matches your theme color */
+    font-weight: bold;
+}
+
+/* Styling for the input field */
+.custom-amount-input {
+    width: 100%; /* Adjust to fit the container */
+    max-width: 300px; /* Set a maximum width */
+    padding: 10px;
+    font-size: 16px;
+    border: 2px solid #ccc; /* Light border */
+    border-radius: 5px; /* Rounded corners */
+    outline: none;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05); /* Subtle shadow */
+    transition: border-color 0.3s ease, box-shadow 0.3s ease; /* Smooth hover effect */
+}
+
+/* Hover and focus effects for input */
+.custom-amount-input:focus,
+.custom-amount-input:hover {
+    border-color: #a7ceba; /* Highlight border on focus/hover */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Enhanced shadow */
+}
+
+.loading-message {
+    font-size: 18px; /* Larger font for better visibility */
+    font-weight: bold; /* Emphasize the text */
+    text-align: center; /* Center the text */
+    color: #004e64; /* Complementary color */
+    background-color: #f9f9f9; /* Subtle background color */
+    padding: 10px 20px; /* Add some padding for better appearance */
+    border-radius: 10px; /* Smooth rounded corners */
+    border: 0px solid #a7ceba; /* Light blue border color */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow effect */
+    margin: 20px auto; /* Add spacing around the message */
+    max-width: 400px; /* Center the message and limit its width */
+}
+#charge-details {
+    border: 1px solid #ccc; /* Light border around the section */
+    /* #a7ceba; Light blue border */
+    border-radius: 10px; /* Rounded corners */
+    padding: 20px; /* Inner spacing */
+    margin: 20px auto; /* Center the section and add spacing */
+    /* max-width: 500px; Limit the width */
+    text-align: center; /* Center-align the text */
+}
+
+#charge-details p {
+    font-size: 16px; /* Standard font size */
+    color: #004e64; /* Complementary text color */
+    margin: 10px 0; /* Spacing between lines */
+    font-weight: 500; /* Slightly bold text */
 }
