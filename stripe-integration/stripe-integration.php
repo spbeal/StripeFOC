@@ -22,12 +22,82 @@ add_action('wp_enqueue_scripts', 'stripe_payment_enqueue_scripts');
 // Register Shortcode
 function stripe_payment_form_shortcode() {
     ob_start(); ?>
-    <form id="payment-form">
-        <div id="link-authentication-element"></div> <!-- For the Link Authentication Element -->
-        
-        <input type="hidden" id="email-input" /> <!-- Hidden email input field -->
-        <div id="payment-element">
-            <!--Stripe.js injects the Payment Element-->
+
+    <div id="main-container">
+        <div class="section" id="message-section">
+            <h1 class="text-container">Keep Idaho Wild!</h1>
+            <div class="button-container">
+                <p class="text-container">Ancient cedars, lynx and wolves, wild steelhead and chinook salmon all need your help. So do your present and future grandchildren. Someone needs to speak for the animals, the trees, the water. That someone can be you.</p>
+            </div>
+        </div>
+    </div>
+
+    <p id="loading-message" class="loading-message">Loading form...</p>
+    <form id="payment-form" class="hidden">
+        <!-- Section 1: Cash Amount Selection -->
+        <div class="section" id="amount-selection-section">
+            <h3>Select an Amount</h3>
+            <div class="button-container">
+            <div class="button-row">
+                <button type="button" class="amount-button" data-amount="20">$20</button>
+                <button type="button" class="amount-button" data-amount="50">$50</button>
+                <button type="button" class="amount-button" data-amount="100">$100</button>
+            </div>
+            <div class="button-row">
+                <button type="button" class="amount-button" data-amount="250">$250</button>
+                <button type="button" class="amount-button" data-amount="500">$500</button>
+                <button type="button" class="amount-button" data-amount="custom">Other</button>
+            </div>
+        </div>
+            <div id="custom-amount-input" style="display: none;" class="custom-amount-container">
+                <label for="custom-amount" class="custom-amount-label">Enter Amount:</label>
+                <input type="number" id="custom-amount" name="custom_amount" min="5" value="5" class="custom-amount-input">
+            </div>
+        </div>
+
+        <!-- Section 2: Processing Fee Coverage -->
+        <div class="section" id="processing-fee-section">
+            <h3>Cover Processing Fees?</h3>
+            <label>
+                <input type="radio" name="cover_fees" value="yes"> Yes (3% will be added)
+            </label>
+            <label>
+                <input type="radio" name="cover_fees" value="no" checked> No
+            </label>
+        </div>
+
+        <!-- Section 3: Recurring Subscription -->
+        <div class="section" id="subscription-section">
+            <h3>Make it Recurring? This does not work yet</h3>
+            <label>
+                <input type="radio" name="recurring" value="yes"> Yes, make it monthly
+            </label>
+            <label>
+                <input type="radio" name="recurring" value="no" checked> No
+            </label>
+        </div>
+
+        <!-- Section 4: Payment form  -->
+        <div class="section">
+            <div id="link-authentication-element"></div> <!-- For the Link Authentication Element -->
+            
+            <input type="hidden" id="email-input" /> <!-- Hidden email input field -->
+
+            <div id="payment-element">
+                <!--Stripe.js injects the Payment Element-->
+            </div>
+            <button id="submit" style="">
+                <div class="spinner hidden" id="spinner"></div>
+                <span id="button-text">Pay Now</span>
+            </button>
+            <div id="payment-message" class="hidden"></div>
+        </div>
+
+        <!-- Section 5: Date and purchase -->
+        <div class="section" id="charge-details">
+            <p id="chargeamount">Amount: $5</p>
+            <p id="chargefee">Fee: $0</p>
+            <p id="chargedate">Time: N/A</p>
         </div>
     </form>
     <?php
