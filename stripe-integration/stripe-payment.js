@@ -17,8 +17,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
     let linkAuthenticationElement;  // Declare linkauth globally
     let paymentElement;  // Declare payment element globally
+    let addressElement;
     let elements; // Declare element globally
     let current_email = '';
+    let firstName = '';
+    let lastName = '';
+
+    let current_address = {};
+
     paymentForm.style.display = 'none';  // Initially hide the form
 
     let selectedAmount = 5;
@@ -110,7 +116,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     async function updatePaymentIntent() {
         //const response = await fetch(stripeParams.ajaxurl + '?action=create_payment_intent');
-        console.log("Selected amount:", selectedAmount);  // Check if the value is correct
+        //console.log("Selected amount:", selectedAmount);  // Check if the value is correct
         if (isNaN(selectedAmount) || selectedAmount < 5) {
             console.error('Invalid amount:', selectedAmount);
             return;
@@ -135,6 +141,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 // Recreate the payment element with the new client secret
                 elements = stripe.elements({clientSecret, loader, appearance});
                 linkAuthenticationElement = elements.create("linkAuthentication");
+                addressElement = elements.create('address',
+                    { clientSecret,
+                        mode: 'billing', // Can be 'billing' or 'shipping'
+                        defaultValues: {
+                            address: {
+                                country: 'US', // Default country
+                            },
+                        },
+                    }
+                );
                 paymentElement = elements.create('payment', options, { clientSecret,
                     defaultValues: {
                         billingDetails: {
@@ -147,27 +163,37 @@ document.addEventListener('DOMContentLoaded', function () {
                         },
                     },
                 });
+
+                // Create and Mount 
+                addressElement.mount('#address-element');
                 paymentElement.mount('#payment-element');
                 linkAuthenticationElement.mount("#link-authentication-element");
 
                 // Define the readiness promises
+                const addressReady = new Promise((resolve) => {
+                    addressElement.on('ready', () => {
+                        //console.log('Link Authentication Element is ready');
+                        resolve();
+                    });
+                });
+
                 const linkReady = new Promise((resolve) => {
                     linkAuthenticationElement.on('ready', () => {
-                        console.log('Link Authentication Element is ready');
+                        //console.log('Link Authentication Element is ready');
                         resolve();
                     });
                 });
 
                 const paymentReady = new Promise((resolve) => {
                     paymentElement.on('ready', () => {
-                        console.log('Payment Element is ready');
+                        //console.log('Payment Element is ready');
                         resolve();
                     });
                 });
-                await Promise.all([linkReady, paymentReady]);
+                await Promise.all([addressReady, linkReady, paymentReady]);
 
                 // Both elements are ready now
-                console.log('Both elements are ready');
+                //console.log('Both elements are ready');
                 loadingMessage.style.display = 'none';
                 paymentForm.style.display = 'block';  // Show the form
                 paymentForm.classList.remove('hidden');
@@ -274,14 +300,14 @@ document.addEventListener('DOMContentLoaded', function () {
         //paymentForm.style.display = 'block';  // Show the form
 
         try {
-
+            // LISTENERS
             linkAuthenticationElement.on('change', (event) => {
                 const email = event.value.email;
                 console.log("Captured email:", email);  // Log the email to verify it's captured
 
                 if (!email || !validateEmail(email)) {
                     paymentMessage.textContent = "Please enter a valid email address.";
-                    // submitButton.disabled = false;
+                    //submitButton.disabled = false;
                     loadingMessage.style.display = 'none';
                     return;
                 }
@@ -291,8 +317,33 @@ document.addEventListener('DOMContentLoaded', function () {
                     emailInput.value = email;  // Store the email in the hidden input field
                 }                    
             });
+            addressElement.on('change', (event) => {
+                const { value: addressDetails } = addressElement.getValue();
+                //const addressDetails = event.value;  // Get the address details object
 
-            console.log('Email being passed to Stripe:', current_email);
+                const fullName = addressDetails.name;  // Full name from AddressElement
+
+                // Split the full name into first and last names
+                const nameParts = fullName.split(" ");
+                firstName = nameParts[0];  // First part as first name
+                lastName = nameParts.slice(1).join(" ");  // Join the rest as last name (handles multiple last names)
+
+                if (!addressDetails.complete) {
+                    paymentMessage.textContent = 'Please complete the address form.';
+                    return;
+                }
+
+                // Store the validated address
+                current_address = addressDetails;
+            });
+
+            // TESTS
+            //console.log('Email being passed to Stripe:', current_email);
+            // console.log('First name being passed to Stripe:', firstName);
+            // console.log('Last name being passed to Stripe:', lastName);
+
+            // let name = `${firstName} ${lastName}`
+            // console.log('Name being passed', name);
 
             const { error } = await stripe.confirmPayment({
                 elements,
@@ -302,6 +353,16 @@ document.addEventListener('DOMContentLoaded', function () {
                     // return_url: 'https://www.foesoftheclearwater.com/payment-success',
 
                 },
+                payment_method: {
+                    billing_details:
+                    {
+                        name: current_address.name,
+                        first_name: firstName,
+                        last_name: lastName,
+                        email: `${current_email}`,
+                        address: current_address.address,
+                    }
+                }
             });
 
             if (error) {

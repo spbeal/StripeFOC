@@ -79,18 +79,24 @@ function stripe_payment_form_shortcode() {
 
         <!-- Section 4: Payment form  -->
         <div class="section">
+    
+            <div id="address-element"></div>
+            <br>
+
             <div id="link-authentication-element"></div> <!-- For the Link Authentication Element -->
-            
+            <br>
             <input type="hidden" id="email-input" /> <!-- Hidden email input field -->
 
             <div id="payment-element">
                 <!--Stripe.js injects the Payment Element-->
             </div>
+            
             <button id="submit" style="">
                 <div class="spinner hidden" id="spinner"></div>
                 <span id="button-text">Pay Now</span>
             </button>
             <div id="payment-message" class="hidden"></div>
+
         </div>
 
         <!-- Section 5: Date and purchase -->
