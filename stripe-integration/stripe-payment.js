@@ -1,6 +1,8 @@
 document.addEventListener('DOMContentLoaded', function () {
     const stripe = Stripe('pk_test_51Q7i5JIzczgg3ibGb6QdyYhCA64fMBya6fI1b1Lx4b3sjRGNZ16WiRalqFv6tlscBHFNzJZsFb8M7vq9rCtvYBG500TBh9RGvS');
     const paymentForm = document.getElementById('payment-form');
+    const rightColumn = document.getElementById('right-column');
+
     const amountButtons = document.querySelectorAll('.amount-button');
     const customAmountInput = document.getElementById('custom-amount-input');
     const customAmountField = document.getElementById('custom-amount');
@@ -11,9 +13,6 @@ document.addEventListener('DOMContentLoaded', function () {
     //const submitButton = document.getElementById('submit');
     const paymentMessage = document.getElementById('payment-message');
 
-    const chargeDetails = document.getElementById('charge-details');
-    const chargeAmount = document.getElementById('charge-amount');
-    const chargeDate = document.getElementById('charge-date');
 
     let linkAuthenticationElement;  // Declare linkauth globally
     let paymentElement;  // Declare payment element globally
@@ -22,14 +21,18 @@ document.addEventListener('DOMContentLoaded', function () {
     let current_email = '';
     let firstName = '';
     let lastName = '';
+    let clientSecret = '';
 
     let current_address = {};
 
-    paymentForm.style.display = 'none';  // Initially hide the form
+    paymentForm.style.display = 'none';  // Show the form
+    rightColumn.style.display = 'none';  // Show the form
+
 
     let selectedAmount = 5;
     let coverFees = false;
-    
+    let recurring_input = false;
+
     /////////
     amountButtons.forEach((button) => {
         button.addEventListener('click', () => {
@@ -66,14 +69,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // customAmountField.addEventListener('input', () => {
-    //     selectedAmount = parseFloat(customAmountField.value) || 5;
-    //     if (selectedAmount >= 5) {
-    //         updateChargeDetails();
-    //         updatePaymentIntent(); // Update PaymentIntent with new custom amount
-    //     }
-    // });
-
     // Handle processing fee selection
     const coverFeesRadio = document.querySelectorAll('input[name="cover_fees"]');
     coverFeesRadio.forEach((radio) => {
@@ -84,12 +79,40 @@ document.addEventListener('DOMContentLoaded', function () {
             updatePaymentIntent();
         });
     });
+
+    const recurringRadio = document.querySelectorAll('input[name="recurring"]');
+    recurringRadio.forEach((radio) => {
+        radio.addEventListener('change', () => {
+            recurring_input = document.querySelector('input[name="recurring"]:checked').value === 'yes';
+            //paymentForm.style.display = 'none';  // Initially hide the form
+            updateChargeDetails();
+            updatePaymentIntent();
+        });
+    });
     ////////////////
 
     const appearance = {
-        theme: 'flat',
-        variables: { colorPrimaryText: '#262626' }
-      };
+    theme: 'flat',
+    variables: {
+        fontFamily: 'Sohne, system-ui, sans-serif',
+        fontWeightNormal: '500',
+        borderRadius: '8px',
+        // colorBackground: '#e7e7ec',
+        colorPrimary: '#005870',
+        accessibleColorOnColorPrimary: '#005870',
+        // colorText: '#000000',
+        // colorTextSecondary: '#000000',
+        // colorTextPlaceholder: '#ABB2BF',
+        // tabIconColor: 'black',
+        // logoColor: 'dark'
+    },
+    rules: {
+        '.Input': {
+        // backgroundColor: '#e7e7ec',
+        border: '1px solid var(--colorPrimary)'
+        }
+    }
+    };
     const options = { /* options */ };
 
     function validateEmail(email) {
@@ -101,6 +124,8 @@ document.addEventListener('DOMContentLoaded', function () {
         const chargeAmountElement = document.getElementById('chargeamount');
         const chargeFeeElement = document.getElementById('chargefee');
         const chargeDateElement = document.getElementById('chargedate');
+        const chargeRecurringElement = document.getElementById('chargerecurring');
+
 
         // Calculate the amount with fees if necessary
         let finalAmount = selectedAmount;
@@ -112,6 +137,7 @@ document.addEventListener('DOMContentLoaded', function () {
         chargeAmountElement.textContent = `Amount: $${finalAmount.toFixed(2)}`;
         chargeFeeElement.textContent = coverFees ? 'Fee: 3%' : 'Fee: $0';
         chargeDateElement.textContent = `Charge Date: ${new Date().toLocaleDateString()}`;
+        chargeRecurringElement.textContent = recurring_input ? 'True' : 'False';
     }
 
     async function updatePaymentIntent() {
@@ -128,6 +154,8 @@ document.addEventListener('DOMContentLoaded', function () {
             body: JSON.stringify({
                 amount: selectedAmount,
                 cover_fees: coverFees,
+                email: emailInput.value,
+                recurring: recurring_input,
             })
         });
 
@@ -136,15 +164,31 @@ document.addEventListener('DOMContentLoaded', function () {
 
         try {
             if (result.success) {
-                const clientSecret = result.data.clientSecret;
+                clientSecret = result.data.clientSecret;
 
                 // Recreate the payment element with the new client secret
+                console.log('RECURRING:', recurring_input);
+
+                if (recurring_input) {
+                    console.log('Recurring payment setup:', recurring_input);
+                
+                    // Ensure the subscription object exists
+                    if (result.data.subscription && result.data.subscription.latest_invoice && result.data.subscription.latest_invoice.payment_intent) {
+                        clientSecret = result.data.subscription.latest_invoice.payment_intent.client_secret;
+                    } else {
+                        console.error('Subscription data is missing or incomplete:', result.data);
+                        return; // Stop further execution if data is missing
+                    }
+                }
+                
+
                 elements = stripe.elements({clientSecret, loader, appearance});
                 linkAuthenticationElement = elements.create("linkAuthentication");
                 addressElement = elements.create('address',
                     { clientSecret,
                         mode: 'billing', // Can be 'billing' or 'shipping'
                         defaultValues: {
+                            name: '',
                             address: {
                                 country: 'US', // Default country
                             },
@@ -197,6 +241,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 loadingMessage.style.display = 'none';
                 paymentForm.style.display = 'block';  // Show the form
                 paymentForm.classList.remove('hidden');
+                rightColumn.style.display = 'block';  // Show the form
+                rightColumn.classList.remove('hidden');
 
             } else {
                 document.getElementById('payment-message').textContent = result.data.error;
@@ -208,85 +254,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     async function initializeStripe()
     {
-        // let response;
-        // if (selectedAmount == 0)
-        // {
-        //     response = await fetch(stripeParams.ajaxurl + '?action=get_secret');
-        // }
-        // else
-        // {
-        //     response = await fetch(stripeParams.ajaxurl + '?action=create_payment_intent', {
-        //         method: 'POST',
-        //         headers: { 'Content-Type': 'application/json' },
-        //         body: JSON.stringify({
-        //             amount: selectedAmount,
-        //             cover_fees: coverFees,
-        //         })
-        //     });
-        // }
-        // const response = await fetch(stripeParams.ajaxurl + '?action=create_payment_intent');
-
-
-        // const response = await fetch(stripeParams.ajaxurl + '?action=create_payment_intent', {
-        //     method: 'POST',
-        //     headers: { 'Content-Type': 'application/json' },
-        //     body: JSON.stringify({
-        //         amount: selectedAmount,
-        //         cover_fees: coverFees,
-        //     })
-        // });
-        // const result = await response.json();
-        // //console.log("AJAX Response:", result); // Debug the full response
-        // console.log('Received response from server:', result);  // Log the response
-
-        // if (result.success) {
-
-        //     const clientSecret = result.data.clientSecret;
-        //     const loader = 'auto';                    
-
-        //     elements = stripe.elements({clientSecret, loader, appearance});
-        //     linkAuthenticationElement = elements.create("linkAuthentication");
-        //     paymentElement = elements.create('payment', options, { clientSecret,
-        //         defaultValues: {
-        //             billingDetails: {
-        //             name: 'John Doe',
-        //             phone: '888-888-8888',
-        //             address: {
-        //                 postal_code: '10001',
-        //                 country: 'US',
-        //             },
-        //             },
-        //         },
-        //     });
-        //     paymentElement.mount('#payment-element');
-        //     linkAuthenticationElement.mount("#link-authentication-element");
-
-        //     // Define the readiness promises
-        //     const linkReady = new Promise((resolve) => {
-        //         linkAuthenticationElement.on('ready', () => {
-        //             console.log('Link Authentication Element is ready');
-        //             resolve();
-        //         });
-        //     });
-
-        //     const paymentReady = new Promise((resolve) => {
-        //         paymentElement.on('ready', () => {
-        //             console.log('Payment Element is ready');
-        //             resolve();
-        //         });
-        //     });
-        //     await Promise.all([linkReady, paymentReady]);
-
-        //     // Both elements are ready now
-        //     console.log('Both elements are ready');
-        //     loadingMessage.style.display = 'none';
-        //     paymentForm.style.display = 'block';  // Show the form
-        //     paymentForm.classList.remove('hidden');
-        //}
         updatePaymentIntent();
     }
         initializeStripe();
-
 
         
     // Listen for form submission
@@ -294,10 +264,7 @@ document.addEventListener('DOMContentLoaded', function () {
         event.preventDefault();
 
         
-        //submitButton.disabled = true;
         paymentMessage.textContent = '';
-        //loadingMessage.style.display = 'block';
-        //paymentForm.style.display = 'block';  // Show the form
 
         try {
             // LISTENERS
@@ -341,35 +308,36 @@ document.addEventListener('DOMContentLoaded', function () {
             //console.log('Email being passed to Stripe:', current_email);
             // console.log('First name being passed to Stripe:', firstName);
             // console.log('Last name being passed to Stripe:', lastName);
-
+            // console.log('RECURRING: ', recurring_input);
             // let name = `${firstName} ${lastName}`
             // console.log('Name being passed', name);
 
             const { error } = await stripe.confirmPayment({
                 elements,
+                payment_method: {
+                    billing_details: {  // Use billing_details (with an underscore)
+                        name: current_address.name,
+                        first_name: firstName,
+                        last_name: lastName,
+                        email: `${current_email}`,
+                        address: current_address.address,
+                    },
+                },
                 confirmParams: {
                     return_url: 'https://www.foesoftheclearwater.com',
                     receipt_email: current_email,
                     // return_url: 'https://www.foesoftheclearwater.com/payment-success',
 
                 },
-                payment_method: {
-                    billing_details:
-                    {
-                        name: current_address.name,
-                        first_name: firstName,
-                        last_name: lastName,
-                        email: `${current_email}`,
-                        address: current_address.address,
-                    }
-                }
             });
 
             if (error) {
                 console.error('Payment failed:', error.message);
                 document.getElementById('payment-message').textContent = error.message;
             } else {
-                document.getElementById('payment-message').textContent = 'Payment successful!';
+                document.getElementById('payment-message').textContent = recurring_input === true 
+                ? 'Subscription created successfully!' 
+                : 'Payment successful!';
             }
         } catch (error) {
             console.error('Error during payment:', error);

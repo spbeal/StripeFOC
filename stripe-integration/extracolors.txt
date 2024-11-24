@@ -1,0 +1,10 @@
+/*
+Colors:
+a7ceba light green
+88b8a3 green
+008cdd stripe blue
+c5c6d0 gray
+004e64 blue
+*/
+
+rgb(173, 214, 193)
