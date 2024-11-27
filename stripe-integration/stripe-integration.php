@@ -26,7 +26,7 @@ function stripe_payment_form_shortcode() {
     <div id="main-container">
         <div class="member-section1" id="">
             <!-- <h1 class="text-container">Keep Idaho Wild!</h1> -->
-            <h1 class="text-container">Your donation helps preserve Idaho's pristine wilderness for future generations.</h1>
+            <h1 class="text-container">Your donation helps preserve Idaho's public lands for future generations.</h1>
             <div class=""> 
                  <!-- button-container -->
                 <!-- <p class="text-container">
@@ -70,7 +70,7 @@ function stripe_payment_form_shortcode() {
                     </div>
                     <div class="button-row">
                         <button id="selected" type="button" class="amount-button" data-amount="100">$100</button>
-                        <button id="selected" type="button" class="amount-button" data-amount="200">$200</button>
+                        <!-- <button id="selected" type="button" class="amount-button" data-amount="200">$200</button> -->
                         <button id="selected" type="button" class="amount-button" data-amount="custom">Other</button>
                     </div>
                 </div>
@@ -129,7 +129,7 @@ function stripe_payment_form_shortcode() {
                     <p id="chargeamount">Amount: $5</p>
                     <p id="chargefee">Fee: $0</p>
                     <p id="chargedate">Time: N/A</p>
-                    <p id="chargerecurring">Recurring: false</p>
+                    <p id="chargerecurring">Recurring: No</p>
 
                 </div>
             </form>
@@ -169,8 +169,97 @@ add_shortcode('stripe_payment_form', 'stripe_payment_form_shortcode');
 require_once plugin_dir_path(__FILE__) . 'stripe-php/init.php';
 add_action('wp_ajax_create_payment_intent', 'create_payment_intent');
 add_action('wp_ajax_nopriv_create_payment_intent', 'create_payment_intent');
+add_action('wp_ajax_create_subscription', 'create_subscription');
+add_action('wp_ajax_nopriv_create_subscription', 'create_subscription');
 //add_action('wp_ajax_get_secret', 'get_secret');
 
+function create_subscription()
+{
+    try {
+
+        $data = json_decode(file_get_contents('php://input'), true);  // Decode the JSON payload
+        error_log(print_r($data, true));  // Logs the data for debugging purposes
+
+        // Check if 'amount' is valid
+        if (!isset($data['amount']) || !is_numeric($data['amount']) || $data['amount'] <= 0) {
+            echo json_encode(['success' => false, 'data' => ['message' => 'Invalid or missing amount.']]);
+            wp_die(); // End the request
+        }
+
+        // Process amount (ensure it's in cents)
+        $amount = floatval($data['amount']) * 100;  // Convert to cents
+        $cover_fees = boolval($data['cover_fees']);
+        if ($cover_fees) {
+            $amount += $amount * 0.03;  // Add 3% fee
+        }
+
+        // $is_recurring = isset($data['recurring']) && $data['recurring'] === 'yes';
+        $is_recurring = boolval($data['recurring']);
+
+        $stripe = new \Stripe\StripeClient(STRIPE_SECRET_KEY);
+
+        $email = $data['email'];
+        $address = $data['address'];
+        $name =  $data['name'];
+        $customer = $stripe->customers->create([
+            'email' => $email,
+            'address' => $address,
+            'name' => $name,
+            // 'name' => '{{CUSTOMER_NAME}}',
+        
+            // 'address' => [
+            //   'city' => 'Brothers',
+            //   'country' => 'US',
+            //   'line1' => '27 Fredrick Ave',
+            //   'postal_code' => '97712',
+            //   'state' => 'CA',
+            // ],
+          ]);
+          $product_name = "Subscription - $name";
+        $price = $stripe->prices->create([
+            'unit_amount' => $amount,
+            'currency' => 'usd',
+            'recurring' => ['interval' => 'month'],  // Monthly subscription
+            'product_data' => [
+                'name' => $product_name,  // Name of the product
+            ],
+        ]);
+
+        $subscription = $stripe->subscriptions->create([
+            'customer' => $customer->id,
+            // 'default_payment_method' => ['card'],
+            'items' => [
+                [
+                    'price' => $price->id,
+                ],
+            ],
+            'payment_behavior' => 'default_incomplete',
+            'payment_settings' => ['save_default_payment_method' => 'on_subscription'],
+            'expand' => ['latest_invoice.payment_intent', 'pending_setup_intent'],
+        ]);
+        echo json_encode(['data' => ['clientSecret' => $subscription->latest_invoice->payment_intent->client_secret]]);
+
+        // if ($subscription->pending_setup_intent !== NULL) {
+        //     echo json_encode(['type' => 'setup', 'data' => ['clientSecret' => $subscription->pending_setup_intent->client_secret]]);
+        //   } else {
+
+        //     echo json_encode(['type' => 'payment', 'data' => ['clientSecret' => $subscription->latest_invoice->payment_intent->client_secret]]);
+
+        // }
+
+        // $clientSecret = $subscription->latest_invoice->payment_intent->client_secret ?? null;
+
+        // if ($clientSecret) {
+        //     echo json_encode(['success' => true, 'data' => ['clientSecret' => $clientSecret]]);
+        // } else {
+        //     error_log('No client secret in subscription payment intent.');
+        //     echo json_encode(['success' => false, 'data' => ['message' => 'Subscription created, but no client secret found.']]);
+        // }
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'data' => ['message' => $e->getMessage()]]);
+    }
+    wp_die(); // Terminate the request
+}
 
 function create_payment_intent() {
     //\Stripe\Stripe::setApiKey(STRIPE_SECRET_KEY); // Your secret key
@@ -195,77 +284,36 @@ function create_payment_intent() {
     }
 
     // $is_recurring = isset($data['recurring']) && $data['recurring'] === 'yes';
-    $is_recurring = boolval($data['recurring']);
-    error_log('Creating subscription for recurring donation...');
-
-    // Create the subscription
-
-    // try {
-    //     \Stripe\Stripe::setApiKey(STRIPE_SECRET_KEY); // Your secret key
-
-    //     if ($is_recurring) {
-    //              // Check for existing customer
-    //     $customers = \Stripe\Customer::all(['email' => $data['email'], 'limit' => 1]);
-    //     $customer = count($customers->data) > 0 ? $customers->data[0] : \Stripe\Customer::create(['email' => $data['email']]);
-    //     error_log('Customer created or retrieved: ' . $customer->id);
-
-    //     // Create a Stripe plan or use the amount directly
-    //     $price = \Stripe\Price::create([
-    //         'unit_amount' => $amount,
-    //         'currency' => 'usd',
-    //         'recurring' => ['interval' => 'month'],  // Monthly subscription
-    //         'product' => [
-    //             'name' => 'Donation Subscription',  // Name of the product
-    //         ],
-    //     ]);
-    //     error_log('Price created: ' . $price->id);
-
-    //     // Create the subscription
-    //     $subscription = \Stripe\Subscription::create([
-    //         'customer' => $customer->id,
-    //         'items' => [
-    //             [
-    //                 'price' => $price->id,
-    //             ],
-    //         ],
-    //         'expand' => ['latest_invoice.payment_intent'],
-    //     ]);
-    //     error_log('Subscription created: ' . $subscription->id);
-
-    //     $clientSecret = $subscription->latest_invoice->payment_intent->client_secret ?? null;
-    //     if ($clientSecret) {
-    //         echo json_encode(['success' => true, 'data' => ['clientSecret' => $clientSecret]]);
-    //     } else {
-    //         error_log('No client secret in subscription payment intent.');
-    //         echo json_encode(['success' => false, 'data' => ['message' => 'Subscription created, but no client secret found.']]);
-    //     }
-    //     } else {
-    //         // Create one-time payment intent
-    //         $intent = \Stripe\PaymentIntent::create([
-    //             'amount' => $amount,
-    //             'currency' => 'usd',
-    //             'payment_method_types' => ['card'],
-    //         ]);
-
-    //         echo json_encode(['success' => true, 'data' => ['clientSecret' => $intent->client_secret]]);
-    //     }
-
-    // } catch (Exception $e) {
-    //     echo json_encode(['success' => false, 'data' => ['message' => $e->getMessage()]]);
-    // }
-
 
     try {
-        \Stripe\Stripe::setApiKey(STRIPE_SECRET_KEY); // Your secret key
+        // \Stripe\Stripe::setApiKey(STRIPE_SECRET_KEY); 
+        $stripe = new \Stripe\StripeClient(STRIPE_SECRET_KEY);
 
-        $intent = \Stripe\PaymentIntent::create([
+        // Create a one-time payment intent
+        $intent = $stripe->paymentIntents->create([
             'amount' => $amount,
             'currency' => 'usd',
             'payment_method_types' => ['card'],
         ]);
+        
         echo json_encode(['success' => true, 'data' => ['clientSecret' => $intent->client_secret]]);
+
     } catch (Exception $e) {
         echo json_encode(['success' => false, 'data' => ['message' => $e->getMessage()]]);
     }
+
+
+    // try {
+    //     \Stripe\Stripe::setApiKey(STRIPE_SECRET_KEY); // Your secret key
+
+    //     $intent = \Stripe\PaymentIntent::create([
+    //         'amount' => $amount,
+    //         'currency' => 'usd',
+    //         'payment_method_types' => ['card'],
+    //     ]);
+    //     echo json_encode(['success' => true, 'data' => ['clientSecret' => $intent->client_secret]]);
+    // } catch (Exception $e) {
+    //     echo json_encode(['success' => false, 'data' => ['message' => $e->getMessage()]]);
+    // }
     wp_die(); // Terminate the request
 }

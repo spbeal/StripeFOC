@@ -36,19 +36,19 @@
 }
 
 .amount-button:hover {
-    /* color: #004e64;
+    color: #004e64;
     background: #e7e7ec;
-    border: 1px solid #c5c6d0;  */
-    background: #00485c;
+    border: 1px solid #c5c6d0; 
+    /* background: #00485c; */
 
 }
 
 .amount-button.active 
 {
-    /* color: #004e64;
+    color: #004e64;
     background: #e7e7ec;
-    border: 1px solid #c5c6d0;  */
-    background: #00485c;
+    border: 1px solid #c5c6d0; 
+    /* background: #00485c; */
 
 }
 
@@ -301,7 +301,8 @@
 
     height: 100%;
 
-    margin-bottom: 10vh;
+    /* margin-bottom: 10vh; */
+    margin-bottom: 40px;
     /* padding-bottom: 50px; */
     top: 10vh;
     z-index: 10; /* Makes sure the column stays on top of other elements */

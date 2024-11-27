@@ -1,5 +1,7 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const stripe = Stripe('pk_test_51Q7i5JIzczgg3ibGb6QdyYhCA64fMBya6fI1b1Lx4b3sjRGNZ16WiRalqFv6tlscBHFNzJZsFb8M7vq9rCtvYBG500TBh9RGvS');
+    const stripe = Stripe('pk_live_51Q7i5JIzczgg3ibGHMru3Zzz1UOnfHInisA6S2881J6n581s64pLB0su47kq6DdhbD9OjJqdCjZbaWOxVGYzD8ki00hlZmXfBT');
+    //pk_test_51Q7i5JIzczgg3ibGb6QdyYhCA64fMBya6fI1b1Lx4b3sjRGNZ16WiRalqFv6tlscBHFNzJZsFb8M7vq9rCtvYBG500TBh9RGvS
+    //pk_live_51Q7i5JIzczgg3ibGHMru3Zzz1UOnfHInisA6S2881J6n581s64pLB0su47kq6DdhbD9OjJqdCjZbaWOxVGYzD8ki00hlZmXfBT
     const paymentForm = document.getElementById('payment-form');
     const rightColumn = document.getElementById('right-column');
 
@@ -91,7 +93,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     ////////////////
 
-    const appearance = {
+    let appearance = {
     theme: 'flat',
     variables: {
         fontFamily: 'Sohne, system-ui, sans-serif',
@@ -113,7 +115,35 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
     };
-    const options = { /* options */ };
+    // const options =
+    // {
+    //     mode: 'subscription',
+    //     amount: selectedAmount,
+    //     currency: 'usd',
+    //     appearance: {
+    //         theme: 'flat',
+    //         variables: {
+    //             fontFamily: 'Sohne, system-ui, sans-serif',
+    //             fontWeightNormal: '500',
+    //             borderRadius: '8px',
+    //             // colorBackground: '#e7e7ec',
+    //             colorPrimary: '#005870',
+    //             accessibleColorOnColorPrimary: '#005870',
+    //             // colorText: '#000000',
+    //             // colorTextSecondary: '#000000',
+    //             // colorTextPlaceholder: '#ABB2BF',
+    //             // tabIconColor: 'black',
+    //             // logoColor: 'dark'
+    //         },
+    //         rules: {
+    //             '.Input': {
+    //             // backgroundColor: '#e7e7ec',
+    //             border: '1px solid var(--colorPrimary)'
+    //             }
+    //         }
+    //     },
+    // };
+
 
     function validateEmail(email) {
         const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -137,27 +167,121 @@ document.addEventListener('DOMContentLoaded', function () {
         chargeAmountElement.textContent = `Amount: $${finalAmount.toFixed(2)}`;
         chargeFeeElement.textContent = coverFees ? 'Fee: 3%' : 'Fee: $0';
         chargeDateElement.textContent = `Charge Date: ${new Date().toLocaleDateString()}`;
-        chargeRecurringElement.textContent = recurring_input ? 'True' : 'False';
+        chargeRecurringElement.textContent = recurring_input ? 'Recurring: Yes, monthly' : 'Recurring: No';
     }
 
     async function updatePaymentIntent() {
+        if (recurring_input)
+            {
+                options = 
+                {
+                    mode: 'subscription',
+                    amount: selectedAmount,
+                    currency: 'usd',
+                    appearance: {
+                        theme: 'flat',
+                        variables: {
+                            fontFamily: 'Sohne, system-ui, sans-serif',
+                            fontWeightNormal: '500',
+                            borderRadius: '8px',
+                            // colorBackground: '#e7e7ec',
+                            colorPrimary: '#005870',
+                            accessibleColorOnColorPrimary: '#005870',
+                            // colorText: '#000000',
+                            // colorTextSecondary: '#000000',
+                            // colorTextPlaceholder: '#ABB2BF',
+                            // tabIconColor: 'black',
+                            // logoColor: 'dark'
+                        },
+                        rules: {
+                            '.Input': {
+                            // backgroundColor: '#e7e7ec',
+                            border: '1px solid var(--colorPrimary)'
+                            }
+                        }
+                    },
+                };
+            }
+            else
+            {
+                options = 
+                {
+                    // mode: 'subscription',
+                    // amount: selectedAmount,
+                    // currency: 'usd',
+                    appearance: {
+                        theme: 'flat',
+                        variables: {
+                            fontFamily: 'Sohne, system-ui, sans-serif',
+                            fontWeightNormal: '500',
+                            borderRadius: '8px',
+                            // colorBackground: '#e7e7ec',
+                            colorPrimary: '#005870',
+                            accessibleColorOnColorPrimary: '#005870',
+                            // colorText: '#000000',
+                            // colorTextSecondary: '#000000',
+                            // colorTextPlaceholder: '#ABB2BF',
+                            // tabIconColor: 'black',
+                            // logoColor: 'dark'
+                        },
+                        rules: {
+                            '.Input': {
+                            // backgroundColor: '#e7e7ec',
+                            border: '1px solid var(--colorPrimary)'
+                            }
+                        }
+                    },
+                }
+            }
         //const response = await fetch(stripeParams.ajaxurl + '?action=create_payment_intent');
         //console.log("Selected amount:", selectedAmount);  // Check if the value is correct
         if (isNaN(selectedAmount) || selectedAmount < 5) {
             console.error('Invalid amount:', selectedAmount);
             return;
         }
+        let response;
+          // Save `customer.id` for use in the payment confirmation
+          
+        if (recurring_input)
+        {
+            // const customer = await stripe.customers.create({
+            //     email: current_email,
+            //     name: `${firstName} ${lastName}`,
+            //     address: current_address,
+            //   });
+            response = await fetch(stripeParams.ajaxurl + '?action=create_subscription', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    amount: selectedAmount,
+                    cover_fees: coverFees,
+                    email: emailInput.value,
+                    recurring: recurring_input,
+                    address: current_address,
+                    name: `${firstName} ${lastName}`,
+                    first_name: firstName,
+                    last_name: lastName,
+                })
+            });
+        }
+        else
+        {
+            response = await fetch(stripeParams.ajaxurl + '?action=create_payment_intent', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    amount: selectedAmount,
+                    cover_fees: coverFees,
+                    email: emailInput.value,
+                    recurring: recurring_input,
+                    address: current_address,
+                    name: `${firstName} ${lastName}`,
+                    first_name: firstName,
+                    last_name: lastName,
+                })
+            });
+        }
 
-        const response = await fetch(stripeParams.ajaxurl + '?action=create_payment_intent', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                amount: selectedAmount,
-                cover_fees: coverFees,
-                email: emailInput.value,
-                recurring: recurring_input,
-            })
-        });
 
         const result = await response.json();
         const loader = 'auto';                    
@@ -167,25 +291,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 clientSecret = result.data.clientSecret;
 
                 // Recreate the payment element with the new client secret
-                console.log('RECURRING:', recurring_input);
+                // console.log('RECURRING:', recurring_input);
+                // console.log('result: ', result.data);
 
-                if (recurring_input) {
-                    console.log('Recurring payment setup:', recurring_input);
-                
-                    // Ensure the subscription object exists
-                    if (result.data.subscription && result.data.subscription.latest_invoice && result.data.subscription.latest_invoice.payment_intent) {
-                        clientSecret = result.data.subscription.latest_invoice.payment_intent.client_secret;
-                    } else {
-                        console.error('Subscription data is missing or incomplete:', result.data);
-                        return; // Stop further execution if data is missing
-                    }
-                }
                 
 
-                elements = stripe.elements({clientSecret, loader, appearance});
+                elements = stripe.elements({clientSecret, loader, options, appearance});
                 linkAuthenticationElement = elements.create("linkAuthentication");
                 addressElement = elements.create('address',
-                    { clientSecret,
+                    { 
                         mode: 'billing', // Can be 'billing' or 'shipping'
                         defaultValues: {
                             name: '',
@@ -195,7 +309,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         },
                     }
                 );
-                paymentElement = elements.create('payment', options, { clientSecret,
+                paymentElement = elements.create('payment', options, clientSecret, { 
                     defaultValues: {
                         billingDetails: {
                         name: 'John Doe',
@@ -262,6 +376,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Listen for form submission
     paymentForm.addEventListener('submit', async (event) => {
         event.preventDefault();
+        elements.submit();
 
         
         paymentMessage.textContent = '';
@@ -311,8 +426,54 @@ document.addEventListener('DOMContentLoaded', function () {
             // console.log('RECURRING: ', recurring_input);
             // let name = `${firstName} ${lastName}`
             // console.log('Name being passed', name);
+            let error;
+            let res;
+            let clientSecret = '';
+            if (recurring_input)
+            {
+                res = await fetch(stripeParams.ajaxurl + '?action=create_subscription', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        amount: selectedAmount,
+                        cover_fees: coverFees,
+                        email: emailInput.value,
+                        recurring: recurring_input,
+                        address: current_address,
+                        name: `${firstName} ${lastName}`,
+                    })
+                });
+                const result = await res.json();
+                clientSecret = result.data.clientSecret;
+                
+            }
 
-            const { error } = await stripe.confirmPayment({
+            if (recurring_input)
+            {
+                error = await stripe.confirmPayment({
+                    clientSecret,
+                    elements,
+                    payment_method: {
+                        billing_details: {  // Use billing_details (with an underscore)
+                            name: current_address.name,
+                            first_name: firstName,
+                            last_name: lastName,
+                            email: `${current_email}`,
+                            address: current_address.address,
+                        },
+                    },
+                    confirmParams: {
+                        return_url: 'https://www.foesoftheclearwater.com',
+                        receipt_email: current_email,
+                        // return_url: 'https://www.foesoftheclearwater.com/payment-success',
+    
+                    },
+                });
+            }
+            else
+            {
+            error = await stripe.confirmPayment({
+                // clientSecret,
                 elements,
                 payment_method: {
                     billing_details: {  // Use billing_details (with an underscore)
@@ -323,6 +484,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         address: current_address.address,
                     },
                 },
+                
                 confirmParams: {
                     return_url: 'https://www.foesoftheclearwater.com',
                     receipt_email: current_email,
@@ -330,6 +492,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 },
             });
+            }
 
             if (error) {
                 console.error('Payment failed:', error.message);
