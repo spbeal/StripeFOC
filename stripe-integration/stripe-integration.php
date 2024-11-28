@@ -64,13 +64,13 @@ function stripe_payment_form_shortcode() {
                     <h3>Select an Amount</h3>
                     <div class="button-container">
                     <div class="button-row">
-                        <button id="selected" type="button" class="amount-button" data-amount="20">$20</button>
-                        <button id="selected" type="button" class="amount-button" data-amount="35">$35</button>
+                        <button id="selected" type="button" class="amount-button" data-amount="20">$20 <br>Membership </button>
+                        <button id="selected" type="button" class="amount-button" data-amount="35">$35 Membership </button>
                         <button id="selected" type="button" class="amount-button" data-amount="50">$50</button>
                     </div>
                     <div class="button-row">
                         <button id="selected" type="button" class="amount-button" data-amount="100">$100</button>
-                        <!-- <button id="selected" type="button" class="amount-button" data-amount="200">$200</button> -->
+                        <button id="selected" type="button" class="amount-button" data-amount="200">$200</button>
                         <button id="selected" type="button" class="amount-button" data-amount="custom">Other</button>
                     </div>
                 </div>
