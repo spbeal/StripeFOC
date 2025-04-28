@@ -49,7 +49,7 @@ function stripe_payment_form_shortcode() {
             </div>
         </div>
     </div>
-    <img src="https://www.foesoftheclearwater.com/wp-content/uploads/2024/08/2024-Logos-05.png" 
+    <img src="https://www.friendsoftheclearwater.org/wp-content/uploads/2024/08/2024-Logos-05.png" 
     alt="Logo" class="responsive-logo" style="max-width: 30%; max-width: 250px; ">
 
 
@@ -87,7 +87,7 @@ function stripe_payment_form_shortcode() {
                         <input type="radio" name="cover_fees" value="yes"> Yes (3% will be added)
                     </label>
                     <label>
-                        <input type="radio" name="cover_fees" value="no" checked> No
+                        <input type="radio" name="cover_fees" value="no" checked>
                     </label>
                 </div>
 
@@ -98,7 +98,7 @@ function stripe_payment_form_shortcode() {
                         <input type="radio" name="recurring"  value="yes"> Yes, make it monthly
                     </label>
                     <label>
-                        <input type="radio" name="recurring"  value="no" checked> No
+                        <input type="radio" name="recurring"  value="no" checked>
                     </label>
                 </div>
 
@@ -137,7 +137,7 @@ function stripe_payment_form_shortcode() {
 
         <!-- Right Column (Image and Text) -->
         <div class ="member-section" id="right-column">
-        <img src="https://www.foesoftheclearwater.com/wp-content/uploads/2024/11/katiebilodeau.jpg" 
+        <img src="https://www.friendsoftheclearwater.org/wp-content/uploads/2024/11/katiebilodeau.jpg" 
         alt="Nature Image" style="max-width: 80%; height: auto; border-radius: 10px;">
             <br>
             <h2 class ="text-container" style="color=#005870">

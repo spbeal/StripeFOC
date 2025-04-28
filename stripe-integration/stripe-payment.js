@@ -1,25 +1,22 @@
 document.addEventListener('DOMContentLoaded', function () {
     const stripe = Stripe('pk_live_51Q7i5JIzczgg3ibGHMru3Zzz1UOnfHInisA6S2881J6n581s64pLB0su47kq6DdhbD9OjJqdCjZbaWOxVGYzD8ki00hlZmXfBT');
-    //pk_test_51Q7i5JIzczgg3ibGb6QdyYhCA64fMBya6fI1b1Lx4b3sjRGNZ16WiRalqFv6tlscBHFNzJZsFb8M7vq9rCtvYBG500TBh9RGvS
-    //pk_live_51Q7i5JIzczgg3ibGHMru3Zzz1UOnfHInisA6S2881J6n581s64pLB0su47kq6DdhbD9OjJqdCjZbaWOxVGYzD8ki00hlZmXfBT
     const paymentForm = document.getElementById('payment-form');
     const rightColumn = document.getElementById('right-column');
 
-    const amountButtons = document.querySelectorAll('.amount-button');
+    const amountButtons = document.querySelectorAll('.amount-button'); // id found in the .php file
     const customAmountInput = document.getElementById('custom-amount-input');
     const customAmountField = document.getElementById('custom-amount');
     const otherAmountButton = document.querySelector('button[data-amount="custom"]');
 
     const emailInput = document.getElementById('email-input');  // Hidden input for email
     const loadingMessage = document.getElementById('loading-message');
-    //const submitButton = document.getElementById('submit');
     const paymentMessage = document.getElementById('payment-message');
 
 
-    let linkAuthenticationElement;  // Declare linkauth globally
-    let paymentElement;  // Declare payment element globally
+    let linkAuthenticationElement; 
+    let paymentElement;  
     let addressElement;
-    let elements; // Declare element globally
+    let elements; 
     let current_email = '';
     let firstName = '';
     let lastName = '';
@@ -35,7 +32,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let coverFees = false;
     let recurring_input = false;
 
-    /////////
+    ///////// Event listeners for amount selection /////////
     amountButtons.forEach((button) => {
         button.addEventListener('click', () => {
             // Highlight selected button
@@ -50,7 +47,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 customAmountInput.style.display = 'none';
                 customAmountField.required = false;
                 selectedAmount = parseFloat(button.getAttribute('data-amount'));
-                //paymentForm.style.display = 'none';  // Initially hide the form
                 updateChargeDetails();
                 updatePaymentIntent();
             }
@@ -60,37 +56,35 @@ document.addEventListener('DOMContentLoaded', function () {
     // Event listener for custom amount input (when the user leaves the input box)
     customAmountField.addEventListener('blur', () => {
         selectedAmount = parseFloat(customAmountField.value) || 5;
-        
         // Update the 'Other' button text with the custom amount
         otherAmountButton.textContent = `$${selectedAmount.toFixed(2)} (Other)`;
         
-        // Make sure the custom amount is valid
         if (selectedAmount >= 5) {
             updateChargeDetails();
-            updatePaymentIntent(); // Update PaymentIntent with new custom amount
+            updatePaymentIntent(); 
         }
     });
 
-    // Handle processing fee selection
+    // Handle cover fees selection
     const coverFeesRadio = document.querySelectorAll('input[name="cover_fees"]');
     coverFeesRadio.forEach((radio) => {
         radio.addEventListener('change', () => {
             coverFees = document.querySelector('input[name="cover_fees"]:checked').value === 'yes';
-            //paymentForm.style.display = 'none';  // Initially hide the form
             updateChargeDetails();
             updatePaymentIntent();
         });
     });
-
+    // Recurring payment selection
     const recurringRadio = document.querySelectorAll('input[name="recurring"]');
     recurringRadio.forEach((radio) => {
         radio.addEventListener('change', () => {
             recurring_input = document.querySelector('input[name="recurring"]:checked').value === 'yes';
-            //paymentForm.style.display = 'none';  // Initially hide the form
             updateChargeDetails();
             updatePaymentIntent();
         });
     });
+    ////////////////
+    ////////////////
     ////////////////
 
     let appearance = {
@@ -99,51 +93,15 @@ document.addEventListener('DOMContentLoaded', function () {
         fontFamily: 'Sohne, system-ui, sans-serif',
         fontWeightNormal: '500',
         borderRadius: '8px',
-        // colorBackground: '#e7e7ec',
         colorPrimary: '#005870',
         accessibleColorOnColorPrimary: '#005870',
-        // colorText: '#000000',
-        // colorTextSecondary: '#000000',
-        // colorTextPlaceholder: '#ABB2BF',
-        // tabIconColor: 'black',
-        // logoColor: 'dark'
     },
     rules: {
         '.Input': {
-        // backgroundColor: '#e7e7ec',
         border: '1px solid var(--colorPrimary)'
         }
     }
     };
-    // const options =
-    // {
-    //     mode: 'subscription',
-    //     amount: selectedAmount,
-    //     currency: 'usd',
-    //     appearance: {
-    //         theme: 'flat',
-    //         variables: {
-    //             fontFamily: 'Sohne, system-ui, sans-serif',
-    //             fontWeightNormal: '500',
-    //             borderRadius: '8px',
-    //             // colorBackground: '#e7e7ec',
-    //             colorPrimary: '#005870',
-    //             accessibleColorOnColorPrimary: '#005870',
-    //             // colorText: '#000000',
-    //             // colorTextSecondary: '#000000',
-    //             // colorTextPlaceholder: '#ABB2BF',
-    //             // tabIconColor: 'black',
-    //             // logoColor: 'dark'
-    //         },
-    //         rules: {
-    //             '.Input': {
-    //             // backgroundColor: '#e7e7ec',
-    //             border: '1px solid var(--colorPrimary)'
-    //             }
-    //         }
-    //     },
-    // };
-
 
     function validateEmail(email) {
         const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -184,18 +142,11 @@ document.addEventListener('DOMContentLoaded', function () {
                             fontFamily: 'Sohne, system-ui, sans-serif',
                             fontWeightNormal: '500',
                             borderRadius: '8px',
-                            // colorBackground: '#e7e7ec',
                             colorPrimary: '#005870',
                             accessibleColorOnColorPrimary: '#005870',
-                            // colorText: '#000000',
-                            // colorTextSecondary: '#000000',
-                            // colorTextPlaceholder: '#ABB2BF',
-                            // tabIconColor: 'black',
-                            // logoColor: 'dark'
                         },
                         rules: {
                             '.Input': {
-                            // backgroundColor: '#e7e7ec',
                             border: '1px solid var(--colorPrimary)'
                             }
                         }
@@ -206,23 +157,14 @@ document.addEventListener('DOMContentLoaded', function () {
             {
                 options = 
                 {
-                    // mode: 'subscription',
-                    // amount: selectedAmount,
-                    // currency: 'usd',
                     appearance: {
                         theme: 'flat',
                         variables: {
                             fontFamily: 'Sohne, system-ui, sans-serif',
                             fontWeightNormal: '500',
                             borderRadius: '8px',
-                            // colorBackground: '#e7e7ec',
                             colorPrimary: '#005870',
                             accessibleColorOnColorPrimary: '#005870',
-                            // colorText: '#000000',
-                            // colorTextSecondary: '#000000',
-                            // colorTextPlaceholder: '#ABB2BF',
-                            // tabIconColor: 'black',
-                            // logoColor: 'dark'
                         },
                         rules: {
                             '.Input': {
@@ -233,22 +175,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     },
                 }
             }
-        //const response = await fetch(stripeParams.ajaxurl + '?action=create_payment_intent');
-        //console.log("Selected amount:", selectedAmount);  // Check if the value is correct
         if (isNaN(selectedAmount) || selectedAmount < 5) {
             console.error('Invalid amount:', selectedAmount);
             return;
         }
         let response;
-          // Save `customer.id` for use in the payment confirmation
           
         if (recurring_input)
         {
-            // const customer = await stripe.customers.create({
-            //     email: current_email,
-            //     name: `${firstName} ${lastName}`,
-            //     address: current_address,
-            //   });
             response = await fetch(stripeParams.ajaxurl + '?action=create_subscription', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -289,12 +223,6 @@ document.addEventListener('DOMContentLoaded', function () {
         try {
             if (result.success) {
                 clientSecret = result.data.clientSecret;
-
-                // Recreate the payment element with the new client secret
-                // console.log('RECURRING:', recurring_input);
-                // console.log('result: ', result.data);
-
-                
 
                 elements = stripe.elements({clientSecret, loader, options, appearance});
                 linkAuthenticationElement = elements.create("linkAuthentication");
@@ -419,13 +347,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 current_address = addressDetails;
             });
 
-            // TESTS
-            //console.log('Email being passed to Stripe:', current_email);
-            // console.log('First name being passed to Stripe:', firstName);
-            // console.log('Last name being passed to Stripe:', lastName);
-            // console.log('RECURRING: ', recurring_input);
-            // let name = `${firstName} ${lastName}`
-            // console.log('Name being passed', name);
             let error;
             let res;
             let clientSecret = '';
@@ -463,9 +384,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         },
                     },
                     confirmParams: {
-                        return_url: 'https://www.foesoftheclearwater.com',
+                        return_url: 'https://www.friendsoftheclearwater.org/',
                         receipt_email: current_email,
-                        // return_url: 'https://www.foesoftheclearwater.com/payment-success',
     
                     },
                 });
@@ -476,7 +396,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 // clientSecret,
                 elements,
                 payment_method: {
-                    billing_details: {  // Use billing_details (with an underscore)
+                    billing_details: {  
                         name: current_address.name,
                         first_name: firstName,
                         last_name: lastName,
@@ -486,9 +406,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 },
                 
                 confirmParams: {
-                    return_url: 'https://www.foesoftheclearwater.com',
+                    return_url: 'https://www.friendsoftheclearwater.org/',
                     receipt_email: current_email,
-                    // return_url: 'https://www.foesoftheclearwater.com/payment-success',
 
                 },
             });
